@@ -1,69 +1,65 @@
-import time
+#memoization table
+memo = {}
 
-def solution(matrix):
-  n_lines = len(matrix)
-  if n_lines <= 1:
+def solution(grid):
+  #max column
+  target_line_size = max(grid)
+  if target_line_size <= 1:
     return 1
 
-  line = matrix[0]
-  if "11" not in line:
-    return solution(matrix[1:])
-
-  matrix_hash = hash_matrix(matrix)
-  memoization_result = memoization_table.get(matrix_hash)
-  if memoization_result:
-    return memoization_result
-
-  #get first content value
-  n_entry = line.index("1")
-
-  #get the max square size
-  ending_search_index = line.find("0", n_entry) if "0" in line[n_entry:] else n_entry + n_lines
-  segment_size = line[n_entry:ending_search_index].count("1")
-
-  #calc the max square size that can be removed at position n_entry
-  square_size = min(segment_size, n_lines)
-
-  ways_of_tilling = 0
-  for n_size in range(1, square_size+1):
-    new_matrix = remove_square(matrix, n_size, n_entry)
-    ways_of_tilling += solution(new_matrix)
+  #cache hits
+  grid_hash = hash_grid(grid)
+  memo_result = memo.get(grid_hash)
+  if memo_result: return memo_result
   
-  memoization_table[matrix_hash] = ways_of_tilling
-  return ways_of_tilling
+  target_index = grid.index(target_line_size)
 
-def remove_square(matrix, square_size, n_entry):
-  new_matrix = [*matrix]
-  for n_line in range(square_size):
-    line_to_update = new_matrix[n_line]
-    new_matrix[n_line] = line_to_update[:n_entry] + "0"*square_size + line_to_update[n_entry+square_size:]
-  return new_matrix
-      
-def print_matrix(matrix):
-  for line in matrix:
-    for step in line:
-      print(step, end=" ")
-    print()
+  #find the max square that can be removed
+  segment_size = 1
+  for line_size in grid[target_index+1:]:
+    #max segment_size reached
+    if line_size < target_line_size or segment_size == line_size:
+      break
+    segment_size += 1
+
+  #remove it
+  ways_of_tilling = 0
+  for square_size in range(1, segment_size+1):
+    new_grid = remove_square(grid, square_size, target_index)
+    ways_of_tilling += solution(new_grid)
+
+  memo[grid_hash] = ways_of_tilling
+  return ways_of_tilling
+  
+def remove_square(grid, square_size, target_index):
+  new_grid = [*grid]
+  for i in range(target_index, target_index+square_size):
+    new_value = new_grid[i] - square_size
+    new_grid[i] = new_value if new_value > 1 else 0
+  return new_grid
+
+def hash_grid(grid):
+  return hash(tuple(grid))
+
+def print_grid(grid):
+  for line_size in grid:
+    print("1"*line_size)
   print()
 
-def hash_matrix(matrix):
-  return hash(tuple(matrix))
+def main():
+  grid_height = int(input())
+  input() #we don't care about the grid width
+  
+  has_content = 0
+  grid = []
+  for _ in range(grid_height):
+    line_size = int(input())
+    if line_size:
+      has_content = 1
+    if line_size > 1:
+      grid.append(line_size)
 
-memoization_table = {}
+  print(solution(grid) if len(grid) else has_content)
 
-matrix_height = int(input())
-matrix_width = int(input())
-
-#build matrix
-matrix = []
-for i in range(matrix_height):
-  line_size = int(input())
-  if not line_size:
-    continue  
-
-  line = "1"*line_size + "0"*(matrix_width-line_size)
-  matrix.append(line)
-
-s_time = time.time()
-print(solution(matrix) if len(matrix) else 0)
-print(f"Time: {round(time.time()-s_time, 3)} seconds")
+if __name__ == "__main__":
+  main() 
