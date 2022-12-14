@@ -2,16 +2,16 @@
 memo_table = {}
 
 def calc_tilling_ways(grid):
-  #get the biggest line size
-  max_line_size = max(grid)
-  if max_line_size <= 1:
-    return 1
-
   #cache hits
   grid_hash = hash_grid(grid)
   memoization_result = memo_table.get(grid_hash)
   if memoization_result: return memoization_result
-  
+
+  #get the target line and its size
+  max_line_size = max(grid)
+  if max_line_size <= 1:
+    return 1
+
   #find the target line index
   target_index = grid.index(max_line_size)
 
@@ -33,14 +33,10 @@ def calc_tilling_ways(grid):
   return ways_of_tilling
   
 def remove_square(grid, square_size, target_index):
-  new_grid = []
-  for i in range(len(grid)):
-    value = grid[i]
-    if i >= target_index and i < target_index+square_size:
-      new_value = value - square_size
-      value = new_value if new_value > 1 else 0
-    new_grid.append(value)
-
+  new_grid = [*grid] #copy grid
+  for i in range(target_index, target_index+square_size):
+    new_value = new_grid[i] - square_size
+    new_grid[i] = new_value if new_value > 1 else 0
   return new_grid
 
 def hash_grid(grid):
@@ -55,16 +51,12 @@ def main():
   grid_height = int(input())
   input() #we don't care about the grid width
   
-  has_content = 0
   grid = []
   for _ in range(grid_height):
     line_size = int(input())
-    if line_size and not has_content:
-      has_content = 1
-    if line_size > 1:
-      grid.append(line_size)
+    grid.append(line_size)
 
-  print(calc_tilling_ways(grid) if len(grid) else has_content)
+  print(calc_tilling_ways(grid) if max(grid) else 0)
 
 if __name__ == "__main__":
   main() 
